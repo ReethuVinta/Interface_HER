@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction!</title>
+</head>
+<body>
+    <div class="column" id="left-col" align="center">
+        <h3>Facial Emotions</h3>
+          <br>
+            <p>Your most frequent emotion is : </p>
+            <br>
+            <h4> {{emo}}</h4>
+            <div class="parent">
+              <ul align="left">
+                <li>Anger : {{prob[0]}}%</li>
+                <li>Happy : {{prob[1]}}%</li>
+                <li>Sad : {{prob[2]}}%</li>
+                <li>Neutral : {{prob[3]}}%</li>
+              </ul>
+            </div>
+          <br>
+        <br>
+        </div>
+      </div>
+</body>
+</html>
