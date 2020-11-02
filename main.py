@@ -117,6 +117,7 @@ def GetVideoFeatures(Path,Xmodel):
 									[Xmodel.layers[-2].output])
 				layer_output = get_3rd_layer_output([face])[0]
 				Video_Features.append(layer_output[0])
+				print("preeeeee")
 		except:
 			Video_Features.append(np.zeros(1024,dtype=np.float32))
 			break
