@@ -5,7 +5,7 @@ import os
 # from modelcode import *
 
 from numpy import save
-# import torch
+import torch
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,14 +22,14 @@ from keras.applications.inception_v3 import InceptionV3
 from keras.applications.vgg16 import preprocess_input
 from keras.layers import concatenate
 from pathlib import Path
-# from torch.autograd import Variable
-# import pandas as pd
-# import librosa
-# import cv2/
+from torch.autograd import Variable
+import pandas as pd
+import librosa
+import cv2
 import os
 import keras
 from scipy.io import wavfile
-# import soundfile as sf
+import soundfile as sf
 import glob
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -61,7 +61,6 @@ def pad(frames):
 		temp = 100 - len(frames)
 	for _ in range(temp):
 		frames.append([0]*1024)
-	frames = np.array(frames)
 	return frames
 
 (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
@@ -159,11 +158,11 @@ def video():
 			Xmodel = load_model('./models/video.h5')
 			face_detect = dlib.get_frontal_face_detector()
 			predictor_landmarks  = dlib.shape_predictor("./models/face_landmarks.dat")
-			model = load_model('./models/dummy.hdf5')
+            model = load_model('./models/dummy.hdf5')
 			predictions=None
 			video_features=GetVideoFeatures(video_path,Xmodel)
-			video_features = np.expand_dims(video_features,axis =0)
 			predictions=model.predict(video_features)
 			print(predictions.shape)
-			print(predictions)
+			_, predicted = torch.max(predictions.data, 1)
+			print(predicted)
 	return render_template('index.html',prob=predictions)
