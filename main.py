@@ -5,7 +5,7 @@ import os
 # from modelcode import *
 
 from numpy import save
-import torch
+# import torch
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,14 +22,14 @@ from keras.applications.inception_v3 import InceptionV3
 from keras.applications.vgg16 import preprocess_input
 from keras.layers import concatenate
 from pathlib import Path
-from torch.autograd import Variable
-import pandas as pd
-import librosa
-import cv2
+# from torch.autograd import Variable
+# import pandas as pd
+# import librosa
+# import cv2/
 import os
 import keras
 from scipy.io import wavfile
-import soundfile as sf
+# import soundfile as sf
 import glob
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -45,10 +45,6 @@ import dlib
 from tensorflow.keras.models import load_model
 from imutils import face_utils
 import requests
-from tensorflow.python.client import device_lib
-import torch.nn as nn
-import torch.nn.functional as F
-import torch
 global shape_x
 global shape_y
 global input_shape
@@ -65,6 +61,7 @@ def pad(frames):
 		temp = 100 - len(frames)
 	for _ in range(temp):
 		frames.append([0]*1024)
+	frames = np.array(frames)
 	return frames
 
 (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
@@ -159,78 +156,14 @@ def video():
 			file_path = os.path.join(
 				basepath, 'Upload', secure_filename(f.filename))
 			f.save(file_path)
-			# predictions = video_analysis(file_path)
-			class Net(nn.Module):
-				def __init__(self, batch_size,use_gpu):
-					print("Fuck off")
-					super(Net, self).__init__()
-					self.feature_size = 1024
-					self.batch_size = None
-					if use_gpu:
-						gpu_count = torch.cuda.device_count()
-						self.batch_size = batch_size//4
-					else:
-						self.batch_size = batch_size
-					self.hidden_size = 2048
-					self.seq_len = 100
-					self.num_layers = 2
-					self.lstm = nn.LSTM(input_size=self.feature_size,hidden_size=self.hidden_size,num_layers=self.num_layers,batch_first=True
-					)
-					self.classifier = nn.Sequential(nn.Linear(self.hidden_size, 2048),
-													nn.RReLU(),
-													nn.Linear(2048, 1024),
-													nn.RReLU(),
-													nn.Linear(1024, 512),
-													nn.RReLU(),
-													nn.Linear(512, 256),
-													nn.RReLU(),
-													nn.Linear(256, 128),
-													nn.RReLU(),
-													nn.Linear(128, 64),
-													nn.RReLU(),
-													nn.Linear(64, 4),
-													nn.LogSoftmax(dim=1)
-													)
-				def forward(self, x):
-					print("Fuck off")
-					prev_state = self.init_state()
-					output, (h, c) = self.lstm(x, prev_state)
-					o = output.contiguous().view(
-						self.seq_len, self.batch_size, self.hidden_size)[-1]
-					o = self.classifier(o)
-					return o
-				def init_state(self):
-					print("Fuck off")
-					use_gpu = torch.cuda.is_available()
-					if(use_gpu):
-						return (torch.zeros(self.num_layers, self.batch_size, self.hidden_size).cuda(),
-								torch.zeros(self.num_layers, self.batch_size, self.hidden_size).cuda())
-					else:
-						return (torch.zeros(self.num_layers, self.batch_size, self.hidden_size),
-								torch.zeros(self.num_layers, self.batch_size, self.hidden_size))
-			print("1")
 			Xmodel = load_model('./models/video.h5')
-			print("2")
 			face_detect = dlib.get_frontal_face_detector()
-			print("3")
 			predictor_landmarks  = dlib.shape_predictor("./models/face_landmarks.dat")
-			print("4")
-			model=torch.load('./models/model_epoch30')
-			print("5")
-			model.eval()
+			model = load_model('./models/dummy.hdf5')
 			predictions=None
 			video_features=GetVideoFeatures(video_path,Xmodel)
-			input1 = []
-			input1.append(video_features)
-			input1.append([[0]*1024]*100)
-			input1.append([[0]*1024]*100)
-			input1.append([[0]*1024]*100)
-			temp = np.array(input1)
-			print(temp.shape)
-			input1 = torch.FloatTensor(input1)
-
-			input1 = Variable(input1)
-			predictions=model(input1)
-			_, predicted = torch.max(predictions.data, 1)
-			print(predicted)
+			video_features = np.expand_dims(video_features,axis =0)
+			predictions=model.predict(video_features)
+			print(predictions.shape)
+			print(predictions)
 	return render_template('index.html',prob=predictions)
