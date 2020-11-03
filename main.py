@@ -24,31 +24,26 @@ from keras.layers import concatenate
 from pathlib import Path
 from torch.autograd import Variable
 import pandas as pd
-import librosa
+# import librosa
 import cv2
 import os
 import keras
-from scipy.io import wavfile
-import soundfile as sf
+# from scipy.io import wavfile
+# import soundfile as sf
 import glob
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from keras import backend as K
-import dlib
-from imutils import face_utils
+# import dlib
+# from imutils import face_utils
 ### Image processing ###
 from scipy.ndimage import zoom
 from scipy.spatial import distance
-import imutils
+# import imutils
 from scipy import ndimage
-import dlib
+# import dlib
 from tensorflow.keras.models import load_model
-from imutils import face_utils
-import requests
-from tensorflow.python.client import device_lib
-import torch.nn as nn
-import torch.nn.functional as F
-import torch
+# from imutils import face_utils
 global shape_x
 global shape_y
 global input_shape
@@ -56,7 +51,7 @@ global nClasses
 global predictions
 import warnings 
 warnings.simplefilter('ignore')
-
+emotions = {0:"Angry",1:"Neutral",2:"Happy",3:"Sad"}
 def pad(frames):
 	frames = [x.tolist() for x in frames]
 	if(len(frames)>100):
@@ -68,13 +63,13 @@ def pad(frames):
 	frames=np.array(frames)
 	return frames
 
-(lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
-(rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
-(nStart, nEnd) = face_utils.FACIAL_LANDMARKS_IDXS["nose"]
-(mStart, mEnd) = face_utils.FACIAL_LANDMARKS_IDXS["mouth"]
-(jStart, jEnd) = face_utils.FACIAL_LANDMARKS_IDXS["jaw"]
-(eblStart, eblEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eyebrow"]
-(ebrStart, ebrEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eyebrow"]
+# (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
+# (rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
+# (nStart, nEnd) = face_utils.FACIAL_LANDMARKS_IDXS["nose"]
+# (mStart, mEnd) = face_utils.FACIAL_LANDMARKS_IDXS["mouth"]
+# (jStart, jEnd) = face_utils.FACIAL_LANDMARKS_IDXS["jaw"]
+# (eblStart, eblEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eyebrow"]
+# (ebrStart, ebrEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eyebrow"]
 shape_x = 48
 shape_y = 48
 input_shape = (shape_x, shape_y, 1)
@@ -124,18 +119,6 @@ def GetVideoFeatures(Path,Xmodel,face_detect,predictor_landmarks):
 	cap.release()
 	cv2.destroyAllWindows()
 	return pad(Video_Features)
-#####################################################
-# def video_analysis(video_path,Xmodel,model):
-
-	
-# #####################################################
-# print(video_analysis('./neutraltest1.mp4'))
-# print(video_analysis('./angry1.mp4'))
-# print(video_analysis('./sad1.mp4'))
-# print(video_analysis('./sad2.mp4'))
-# print(video_analysis('./happy1.mp4'))
-# print([[1]*10]*2)
- 
 
 app = Flask(__name__)
 app.secret_key = b'(\xee\x00\xd4\xce"\xcf\xe8@\r\xde\xfc\xbdJ\x08W'
@@ -146,41 +129,36 @@ def index():
 	print("bye")
 	return render_template('base.html')
 
-@app.route('/video',methods=['GET','POST'])
+@app.route('/video',methods=["POST"])
 def video():
-	predictions=[[1000,1000,1000,1000]]
 	if request.method == "POST":
+		predictions=[[1000,1000,1000,1000]]
+		emotion = None
 		print("iiiiii")
 		if request.files:
 			print("iiiiii")
-			predictions=[[1000,1000,1000,1000]]
 			f = request.files['file']
-			# 	basepath = os.path.dirname(__file__)
-			# 	file_path = os.path.join(
-			# 		basepath, 'Upload', secure_filename(f.filename))
-			# 	f.save(file_path)
-			# print("1")
-			# Xmodel = load_model('./models/video.h5')
-			# print("2")
-			# face_detect = dlib.get_frontal_face_detector()
-			# print("3")
-			# predictor_landmarks  = dlib.shape_predictor("./models/face_landmarks.dat")
-			# print("4")
-			# model=load_model('./models/dummy.hdf5')
-			# print("5")
+			basepath = os.path.dirname(__file__)
+			file_path = os.path.join(
+				basepath, 'Upload', secure_filename(f.filename))
+			f.save(file_path)
+			print("1")
+			Xmodel = load_model('./models/video.h5')
+			print("2")
+			face_detect = dlib.get_frontal_face_detector()
+			print("3")
+			predictor_landmarks  = dlib.shape_predictor("./models/face_landmarks.dat")
+			print("4")
+			model=load_model('./models/dummy.hdf5')
+			print("5")
 			
-			# video_features=GetVideoFeatures(file_path,Xmodel,face_detect,predictor_landmarks)
-			# video_features=np.expand_dims(video_features,axis=0)
-			# predictions=model.predict(video_features)
-			# predictions=predictions.tolist()
-			# predictions=[str(x)for x in predictions] 
-			predictions=[[1,2,3,4]]
-			print("aaaa")
+			video_features=GetVideoFeatures(file_path,Xmodel,face_detect,predictor_landmarks)
+			video_features=np.expand_dims(video_features,axis=0)
+			predictions=model.predict(video_features)
+			predictions=predictions.tolist()
+			predictions= predictions[0] 
 			print(predictions)
-			print("here")
-	print(predictions)
-	return render_template('index.html',prob=predictions)
-
-# @app.route('/video_a',methods=['GET'])
-# def video_a():
-# 	return render_template('index.html',prob=predictions)
+			maximum = predictions.index(max(predictions))
+			emotion = emotions[maximum]
+		return render_template('base.html',prob=predictions,emotion = emotion)
+	return "OK"
