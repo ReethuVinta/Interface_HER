@@ -2,53 +2,24 @@ from flask import Flask
 from flask import render_template,redirect, url_for, request
 from werkzeug.utils import secure_filename
 import os
-# from modelcode import *
-
-from numpy import save
-
-import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
 from tqdm import trange
-from keras.models import Sequential , load_model
-from keras.layers import BatchNormalization, Conv2D, MaxPooling2D, Dense, Dropout, Flatten, LocallyConnected2D
-from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping
-from keras.regularizers import l1, l2
-from keras.utils import plot_model, to_categorical
-from keras.applications import VGG16
-from keras.applications import ResNet50
-from keras.applications.inception_v3 import InceptionV3
-from keras.applications.vgg16 import preprocess_input
-from keras.layers import concatenate
-from pathlib import Path
-from torch.autograd import Variable
-import pandas as pd
-# import librosa
+from keras.models import  load_model
 import cv2
-import os
 import keras
-# from scipy.io import wavfile
-# import soundfile as sf
 import glob
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 from keras import backend as K
-# import dlib
-# from imutils import face_utils
-### Image processing ###
+import dlib
+from imutils import face_utils
 from scipy.ndimage import zoom
 from scipy.spatial import distance
-# import imutils
+import imutils
 from scipy import ndimage
-# import dlib
-from tensorflow.keras.models import load_model
-# from imutils import face_utils
+from imutils import face_utils
 global shape_x
 global shape_y
 global input_shape
 global nClasses
-global predictions
 import warnings 
 warnings.simplefilter('ignore')
 emotions = {0:"Angry",1:"Neutral",2:"Happy",3:"Sad"}
@@ -63,13 +34,6 @@ def pad(frames):
 	frames=np.array(frames)
 	return frames
 
-# (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
-# (rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
-# (nStart, nEnd) = face_utils.FACIAL_LANDMARKS_IDXS["nose"]
-# (mStart, mEnd) = face_utils.FACIAL_LANDMARKS_IDXS["mouth"]
-# (jStart, jEnd) = face_utils.FACIAL_LANDMARKS_IDXS["jaw"]
-# (eblStart, eblEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eyebrow"]
-# (ebrStart, ebrEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eyebrow"]
 shape_x = 48
 shape_y = 48
 input_shape = (shape_x, shape_y, 1)
