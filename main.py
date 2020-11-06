@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import render_template,redirect, url_for, request
+from flask_caching import Cache
 from werkzeug.utils import secure_filename
 import os
 import numpy as np
@@ -41,13 +42,21 @@ nClasses = 7
 thresh = 0.25
 frame_check = 20
 ##############################################################
-def GetVideoFeatures(Path,Xmodel,face_detect,predictor_landmarks):
+def GetVideoFeatures(Path,basepath,Xmodel,face_detect,predictor_landmarks):
 	cap = None
 	cap = cv2.VideoCapture(Path)
+	length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))//10
+	frame_number=0
+	image_number=1
 	Video_Features=[]
 	while cap.isOpened():
 		ret, frame = cap.read()
 		try :
+			if(frame_number % length == 0 and image_number < 9 ):
+				cv2.imwrite(os.path.join(basepath,"static",secure_filename("Img_{}.jpg".format(image_number))),frame)
+				image_number+=1
+				
+			frame_number+=1
 			face_index = 0    
 			gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 			rects = face_detect(gray, 1)
@@ -84,9 +93,17 @@ def GetVideoFeatures(Path,Xmodel,face_detect,predictor_landmarks):
 	cv2.destroyAllWindows()
 	return pad(Video_Features)
 
+config = {
+    "DEBUG": True,          # some Flask specific configs
+    "CACHE_TYPE": "simple", # Flask-Caching related configs
+    "CACHE_DEFAULT_TIMEOUT": 10
+}
 app = Flask(__name__)
+app.config.from_mapping(config)
+cache = Cache(app)
 app.secret_key = b'(\xee\x00\xd4\xce"\xcf\xe8@\r\xde\xfc\xbdJ\x08W'
 app.config["UPLOAD_FOLDER"] = '/Upload'
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route('/',methods=['GET'])
 def index():
@@ -106,6 +123,7 @@ def video():
 			file_path = os.path.join(
 				basepath, 'Upload', secure_filename(f.filename))
 			f.save(file_path)
+
 			print("1")
 			Xmodel = load_model('./models/video.h5')
 			print("2")
@@ -116,13 +134,24 @@ def video():
 			model=load_model('./models/dummy.hdf5')
 			print("5")
 			
-			video_features=GetVideoFeatures(file_path,Xmodel,face_detect,predictor_landmarks)
+			video_features=GetVideoFeatures(file_path,basepath,Xmodel,face_detect,predictor_landmarks)
 			video_features=np.expand_dims(video_features,axis=0)
 			predictions=model.predict(video_features)
 			predictions=predictions.tolist()
 			predictions= predictions[0] 
-			print(predictions)
 			maximum = predictions.index(max(predictions))
 			emotion = emotions[maximum]
-		return render_template('base.html',prob=predictions,emotion = emotion)
+			predictions=[100*x for x in predictions]
+			predictions_round = [ '%.2f' % elem for elem in predictions ]
+			# predictions=[1.00,1.00,1.00,1.00]
+			print(predictions_round)
+		return render_template('base.html',prob=predictions_round,emotion = emotion)
 	return "OK"
+
+@app.after_request
+def add_header(response):
+    # response.cache_control.no_store = True
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
