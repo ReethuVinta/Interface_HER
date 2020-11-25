@@ -44,11 +44,16 @@ def GetVideoFeatures(Path,basepath,face_detect,predictor_landmarks):
 	cap = None
 	cap = cv2.VideoCapture(Path)
 	num=0
-
-	Video_Features=[]
+	length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))//10
+	frame_number=0
+	image_number=1
 	while cap.isOpened():
 		ret, frame = cap.read()
 		try :
+			if(frame_number % length == 0 and image_number < 9 ):
+				cv2.imwrite(os.path.join(basepath,"static",secure_filename("Img_{}.jpg".format(image_number))),frame)
+				image_number+=1				
+			frame_number+=1
 			face_index = 0  
 			# print("here")  
 			gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -85,8 +90,7 @@ def GetVideoFeatures(Path,basepath,face_detect,predictor_landmarks):
 			# print("preeeeee")
 		except:
 			X.append([[0.0]*48]*48)
-			break
-		
+			break	
 	cap.release()
 	cv2.destroyAllWindows()
 	return pad(X)
